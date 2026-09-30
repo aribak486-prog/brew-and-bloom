@@ -1,5 +1,11 @@
-/** Small typed client for the local FastAPI service. Pass the JWT explicitly for protected routes. */
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+/** Typed client for the FastAPI service. Pass the JWT explicitly for protected routes. */
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+const isLocalApiUrl = configuredApiUrl
+  ? /^https?:\/\/(localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::|\/|$)/i.test(configuredApiUrl)
+  : false
+const productionApiConfigurationError = process.env.NODE_ENV === 'production'
+  && (!configuredApiUrl || isLocalApiUrl)
+const API_BASE_URL = (configuredApiUrl || (process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : '')).replace(/\/$/, '')
 
 export type ApiResult<T> = { success: true; data: T } | { success: false; error: string }
 export type MenuItem = {
@@ -32,6 +38,10 @@ export type Order = {
 type RequestOptions = Omit<RequestInit, 'body'> & { token?: string; body?: unknown }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<ApiResult<T>> {
+  if (productionApiConfigurationError) {
+    return { success: false, error: 'The cafe API is not configured for this deployment.' }
+  }
+
   const headers = new Headers(options.headers)
   if (options.body !== undefined) headers.set('Content-Type', 'application/json')
   if (options.token) headers.set('Authorization', `Bearer ${options.token}`)

@@ -146,6 +146,22 @@ Protected endpoints require `Authorization: Bearer <access_token>`. Successful A
 
 The frontend sends chat messages to `POST /api/chat`. The backend retrieves cafe details from `backend/app/data/cafe_info.json` and current menu, prices, categories, and availability from the database. In the standard setup, it loads the model named by `TRANSFORMER_MODEL` on the first in-scope chat request and caches it locally. The first request may take time to download model files; model weights are not part of this repository. The model runs on the backend and no model credential is exposed to the browser.
 
+## Production deployment connection
+
+The Next.js client calls the FastAPI service using `NEXT_PUBLIC_API_URL`. In local development, it keeps the `http://localhost:8000` default. In a production build, the value must be set to the public HTTPS URL of the deployed API; missing or localhost production values are rejected instead of sending browser requests to the visitor's own computer.
+
+Deploy `backend/` as a Python web service (for example, Render) and attach a PostgreSQL database. Set the service's build command to `pip install -r requirements.txt` and start command to `alembic upgrade head && python seed.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Configure these backend environment variables in the host:
+
+- `DATABASE_URL`: the host's PostgreSQL connection string, using `postgresql+psycopg://`.
+- `JWT_SECRET_KEY`: a newly generated random secret of at least 32 characters.
+- `FRONTEND_URL`: `https://brew-and-bloom-8gb0kpev2-aribak486-4754.vercel.app` (the exact allowed browser origin; no trailing slash).
+- `TRANSFORMER_MODEL`: `HuggingFaceTB/SmolLM2-360M-Instruct` (or leave the default).
+- `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`: optional until Stripe is configured; use the appropriate test credentials first.
+
+After the service deploys, its public base URL (for example, `https://<service-name>.onrender.com`) is the backend URL. In Vercel, open the project **Settings → Environment Variables**, add `NEXT_PUBLIC_API_URL` with that exact URL (no `/api` suffix), select **Production** (and Preview too if previews need the backend), save, then redeploy the production deployment. The chatbot posts to `${NEXT_PUBLIC_API_URL}/api/chat`; verify the service at `/health` and `/docs`. Never put database, JWT, or Stripe credentials in Vercel `NEXT_PUBLIC_*` variables.
+
+The Streamlit Cloud wrapper embeds and links to the configured frontend URL. It cannot serve the Next.js app itself. A direct automatic browser redirect is not relied on because the wrapper's embedded HTML runs in an isolated context; keep the “Open Brew & Bloom Website” link as the reliable navigation option if the hosted frontend blocks framing.
+
 ## Project structure
 
 ```text
