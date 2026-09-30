@@ -1,0 +1,14 @@
+{
+  "name": "Brew & Bloom",
+  "description": "A neighborhood cafe serving freshly brewed coffee, handcrafted treats, and cozy moments. The cafe focuses on carefully selected coffee beans and freshly baked treats.",
+  "opening_hours": {
+    "weekdays": "Monday–Friday, 7:00 AM–6:00 PM",
+    "weekends": "Saturday–Sunday, 8:00 AM–5:00 PM"
+  },
+  "location": "18 Willow Lane, Portland",
+  "phone": "+1 (503) 555-0148",
+  "email": "hello@brewandbloom.com",
+  "special_offer": "The website advertises 20% off a coffee and dessert combo. The offer is described on the site as a current special; additional terms are not specified.",
+  "ordering": "Customers can browse the menu and place an order through the website API. Online checkout uses Stripe test mode in this local development setup.",
+  "payment": "Online checkout is provided through Stripe in test mode for local development. Do not enter real payment details."
+}
