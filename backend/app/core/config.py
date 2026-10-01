@@ -15,6 +15,16 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
+    @field_validator("database_url")
+    @classmethod
+    def use_psycopg3_driver(cls, value: str) -> str:
+        """Render supplies a generic PostgreSQL URL; this app installs psycopg v3."""
+        if value.startswith("postgres://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgres://")
+        if value.startswith("postgresql://"):
+            return "postgresql+psycopg://" + value.removeprefix("postgresql://")
+        return value
+
     @field_validator("jwt_secret_key")
     @classmethod
     def jwt_secret_must_be_configured(cls, value: str) -> str:

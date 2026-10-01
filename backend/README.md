@@ -2,6 +2,27 @@
 
 A local FastAPI backend for the Brew & Bloom Next.js website. The app uses PostgreSQL, SQLAlchemy, Alembic, JWT bearer tokens and Stripe Checkout in test mode.
 
+## Deploy on Render
+
+Create a PostgreSQL database and a Python web service in Render. Set the web service's **Root Directory** to `backend`, **Build Command** to `pip install -r requirements.txt`, and **Start Command** to:
+
+```sh
+alembic upgrade head && python seed.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Set these environment variables on the web service:
+
+| Variable | Value |
+| --- | --- |
+| `DATABASE_URL` | Render PostgreSQL **internal** connection URL. Generic `postgres://` and `postgresql://` URLs are normalized to the installed psycopg v3 driver. |
+| `JWT_SECRET_KEY` | A randomly generated secret with at least 32 characters. |
+| `FRONTEND_URL` | `https://brew-and-bloom-8gb0kpev2-aribak486-4754.vercel.app` |
+| `TRANSFORMER_MODEL` | `HuggingFaceTB/SmolLM2-360M-Instruct` (or the selected Hugging Face model id). |
+| `STRIPE_SECRET_KEY` | Your Stripe test secret key (`sk_test_...`). |
+| `STRIPE_WEBHOOK_SECRET` | The signing secret (`whsec_...`) for the Stripe webhook pointing to `/api/webhooks/stripe`. |
+
+The model downloads on the first in-scope chat request, so allow for a slower first response and sufficient service memory. After Render creates the API, set `NEXT_PUBLIC_API_URL` in the Vercel project's environment variables to the Render service's HTTPS origin, then redeploy the frontend. Set `BREW_BLOOM_FRONTEND_URL` in Streamlit secrets to the Vercel URL above.
+
 ## Requirements
 
 - Python 3.11 or newer
